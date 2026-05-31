@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador y Validador de Contraseñas</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --success: #10b981;
+            --error: #ef4444;
+            --border: #334155;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border);
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 0;
+            color: var(--accent);
+        }
+
+        .section {
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        h2 {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        button {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: background-color 0.2s;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: var(--accent-hover);
+        }
+
+        button:disabled {
+            background-color: var(--border);
+            color: var(--text-secondary);
+            cursor: not-allowed;
+        }
+
+        .error-list {
+            color: var(--error);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .error-list li::before {
+            content: "✗ ";
+        }
+
+        .success-msg {
+            color: var(--success);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        .success-msg::before {
+            content: "✓ ";
+        }
+
+        .result-box {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: var(--bg-color);
+            border: 1px solid var(--success);
+            border-radius: 6px;
+            word-break: break-all;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .result-box span {
+            font-family: monospace;
+            font-size: 1.2rem;
+            color: var(--success);
+        }
+
+        .copy-btn {
+            background: none;
+            border: 1px solid var(--success);
+            color: var(--success);
+            width: auto;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+
+        .copy-btn:hover {
+            background: var(--success);
+            color: var(--bg-color);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Gestor de Contraseñas Seguras</h1>
+
+    <!-- Opción 1: Validar Manualmente -->
+    <div class="section">
+        <h2>1. Ingresa tu propia contraseña</h2>
+        <input type="text" id="manualInput" placeholder="Escribe tu contraseña aquí...">
+        <ul id="errorList" class="error-list"></ul>
+        <div id="successMsg" class="success-msg">La contraseña cumple todos los requisitos.</div>
+        <button id="saveBtn" disabled onclick="alert('¡Contraseña guardada con éxito!')">Guardar Contraseña</button>
+    </div>
+
+    <!-- Opción 2: Generar desde Palabras -->
+    <div class="section">
+        <h2>2. Generar a partir de palabras</h2>
+        <input type="text" id="wordsInput" placeholder="Ej: mi perro salta">
+        <button id="generateWordsBtn">Generar Contraseña Segura</button>
+        <div id="wordsResultBox" class="result-box">
+            <span id="wordsResultText"></span>
+            <button class="copy-btn" onclick="copyToClipboard('wordsResultText')">Copiar</button>
+        </div>
+    </div>
+
+    <!-- Opción 3: Generar Aleatoriamente -->
+    <div class="section">
+        <h2>3. Generación Aleatoria</h2>
+        <button id="generateRandomBtn">Generar Contraseña Aleatoria</button>
+        <div id="randomResultBox" class="result-box">
+            <span id="randomResultText"></span>
+            <button class="copy-btn" onclick="copyToClipboard('randomResultText')">Copiar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const manualInput = document.getElementById('manualInput');
+    const errorList = document.getElementById('errorList');
+    const successMsg = document.getElementById('successMsg');
+    const saveBtn = document.getElementById('saveBtn');
+
+    // Debounce function
+    let timeoutId;
+    manualInput.addEventListener('input', () => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+            const password = manualInput.value;
+            if (password.length === 0) {
+                errorList.innerHTML = '';
+                successMsg.style.display = 'none';
+                saveBtn.disabled = true;
+                return;
+            }
+
+            fetch('/api/validate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password })
+            })
+            .then(res => res.json())
+            .then(data => {
+                errorList.innerHTML = '';
+                if (data.valid) {
+                    successMsg.style.display = 'block';
+                    saveBtn.disabled = false;
+                } else {
+                    successMsg.style.display = 'none';
+                    saveBtn.disabled = true;
+                    data.errors.forEach(err => {
+                        const li = document.createElement('li');
+                        li.textContent = err;
+                        errorList.appendChild(li);
+                    });
+                }
+            });
+        }, 300);
+    });
+
+    document.getElementById('generateWordsBtn').addEventListener('click', () => {
+        const words = document.getElementById('wordsInput').value;
+        if (!words) return alert("Por favor ingresa algunas palabras.");
+
+        fetch('/api/generate_words', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ words })
+        })
+        .then(res => res.json())
+        .then(data => {
+            const box = document.getElementById('wordsResultBox');
+            document.getElementById('wordsResultText').textContent = data.password;
+            box.style.display = 'flex';
+        });
+    });
+
+    document.getElementById('generateRandomBtn').addEventListener('click', () => {
+        fetch('/api/generate_random')
+        .then(res => res.json())
+        .then(data => {
+            const box = document.getElementById('randomResultBox');
+            document.getElementById('randomResultText').textContent = data.password;
+            box.style.display = 'flex';
+        });
+    });
+
+    function copyToClipboard(elementId) {
+        const text = document.getElementById(elementId).textContent;
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Contraseña copiada al portapapeles');
+        });
+    }
+</script>
+</body>
+</html>
