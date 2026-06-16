@@ -4,59 +4,52 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Generador y validador de contraseñas seguras. Genera 4 contraseñas únicas desde palabras clave y verifica requisitos en tiempo real.">
-    <title>Generador y Validador de Contraseñas Seguras</title>
+    <title>Gestor de Contraseñas</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet">
     <style>
         /* ===== Design Tokens ===== */
         :root {
-            --bg-primary: #0a0e1a;
-            --bg-secondary: #111827;
-            --bg-card: rgba(17, 24, 39, 0.6);
-            --bg-card-hover: rgba(30, 41, 59, 0.7);
-            --bg-input: rgba(15, 23, 42, 0.8);
-            --bg-glass: rgba(255, 255, 255, 0.03);
+            --bg-primary: #0a0a0a;
+            --bg-card: #111111;
+            --bg-input: #1a1a1a;
+            --bg-input-focus: #222222;
 
-            --text-primary: #f1f5f9;
-            --text-secondary: #94a3b8;
-            --text-muted: #64748b;
+            --text-primary: #d4d4d4;
+            --text-secondary: #888888;
+            --text-muted: #555555;
+            --text-label: #aaaaaa;
 
-            --accent-blue: #3b82f6;
-            --accent-blue-glow: rgba(59, 130, 246, 0.25);
-            --accent-purple: #8b5cf6;
-            --accent-purple-glow: rgba(139, 92, 246, 0.2);
-            --accent-cyan: #06b6d4;
+            --accent-green: #00ff41;
+            --accent-green-dim: #00cc33;
+            --accent-green-glow: rgba(0, 255, 65, 0.15);
+            --accent-cyan: #00e5ff;
+            --accent-red: #ff3333;
+            --accent-yellow: #ffcc00;
+            --accent-orange: #ff8800;
+            --accent-purple: #cc44ff;
 
-            --success: #10b981;
-            --success-glow: rgba(16, 185, 129, 0.2);
-            --error: #ef4444;
-            --error-glow: rgba(239, 68, 68, 0.15);
-            --warning: #f59e0b;
+            --border: #2a2a2a;
+            --border-hover: #3a3a3a;
+            --border-green: rgba(0, 255, 65, 0.3);
 
-            --border: rgba(148, 163, 184, 0.1);
-            --border-hover: rgba(148, 163, 184, 0.2);
+            --font-pixel: 'VT323', monospace;
+            --font-mono: 'Share Tech Mono', monospace;
 
-            --radius-sm: 8px;
-            --radius-md: 12px;
-            --radius-lg: 16px;
-            --radius-xl: 20px;
-
-            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
-            --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.5);
-            --shadow-glow: 0 0 30px var(--accent-blue-glow);
+            --radius: 4px;
         }
 
-        /* ===== Reset & Base ===== */
+        /* ===== Reset ===== */
         *, *::before, *::after {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        /* ===== Body ===== */
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: var(--font-mono);
             background: var(--bg-primary);
             color: var(--text-primary);
             min-height: 100vh;
@@ -64,150 +57,197 @@
             line-height: 1.6;
         }
 
-        /* ===== Animated Background ===== */
-        body::before {
+        /* ===== Scanline overlay ===== */
+        body::after {
             content: '';
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background:
-                radial-gradient(ellipse 80% 60% at 20% 10%, rgba(59, 130, 246, 0.08), transparent),
-                radial-gradient(ellipse 60% 50% at 80% 80%, rgba(139, 92, 246, 0.06), transparent),
-                radial-gradient(ellipse 50% 40% at 50% 50%, rgba(6, 182, 212, 0.04), transparent);
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 0, 0, 0.08) 2px,
+                rgba(0, 0, 0, 0.08) 4px
+            );
             pointer-events: none;
-            z-index: 0;
+            z-index: 9999;
         }
 
         /* ===== Layout ===== */
         .app-wrapper {
-            position: relative;
-            z-index: 1;
-            max-width: 720px;
+            max-width: 960px;
             margin: 0 auto;
-            padding: 2rem 1.5rem 4rem;
+            padding: 2rem 1.5rem 3rem;
         }
 
         /* ===== Header ===== */
         .app-header {
             text-align: center;
-            margin-bottom: 2.5rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
         }
 
-        .app-header .icon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 64px;
-            height: 64px;
-            border-radius: var(--radius-lg);
-            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
-            font-size: 1.8rem;
-            margin-bottom: 1rem;
-            box-shadow: 0 8px 32px var(--accent-blue-glow);
+        .glitch-title {
+            font-family: var(--font-pixel);
+            font-size: 2.2rem;
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-primary);
+            position: relative;
+            display: inline-block;
         }
 
-        .app-header h1 {
-            font-size: 1.75rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-blue) 50%, var(--accent-purple) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            letter-spacing: -0.02em;
+        .glitch-title::before,
+        .glitch-title::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
         }
 
-        .app-header p {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-            margin-top: 0.5rem;
-            font-weight: 300;
+        .glitch-title::before {
+            color: var(--accent-cyan);
+            animation: glitch-1 3s infinite linear;
+            clip-path: inset(0 0 65% 0);
+        }
+
+        .glitch-title::after {
+            color: var(--accent-red);
+            animation: glitch-2 3s infinite linear;
+            clip-path: inset(35% 0 0 0);
+        }
+
+        @keyframes glitch-1 {
+            0%, 100% { transform: translate(0); }
+            20% { transform: translate(-2px, 1px); }
+            40% { transform: translate(2px, -1px); }
+            60% { transform: translate(-1px, 2px); }
+            80% { transform: translate(1px, -2px); }
+        }
+
+        @keyframes glitch-2 {
+            0%, 100% { transform: translate(0); }
+            20% { transform: translate(2px, -1px); }
+            40% { transform: translate(-2px, 1px); }
+            60% { transform: translate(1px, -1px); }
+            80% { transform: translate(-1px, 1px); }
+        }
+
+        .app-subtitle {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-top: 0.6rem;
+        }
+
+        /* ===== Two Column Grid ===== */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        @media (max-width: 720px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         /* ===== Section Cards ===== */
         .section-card {
             background: var(--bg-card);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--border);
-            border-radius: var(--radius-xl);
-            padding: 2rem;
-            margin-bottom: 1.5rem;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            transition: border-color 0.3s ease;
         }
 
         .section-card:hover {
             border-color: var(--border-hover);
-            box-shadow: var(--shadow-md);
         }
 
-        .section-title {
+        .section-header {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 0.75rem;
-            margin-bottom: 1.25rem;
-        }
-
-        .section-title .badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 32px;
-            border-radius: var(--radius-sm);
-            font-size: 1rem;
-            flex-shrink: 0;
-        }
-
-        .section-title .badge.gen {
-            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
-        }
-
-        .section-title .badge.check {
-            background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
-        }
-
-        .section-title h2 {
-            font-size: 1.15rem;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .section-subtitle {
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            margin-bottom: 1.25rem;
-            line-height: 1.5;
-        }
-
-        /* ===== Inputs ===== */
-        .input-group {
-            position: relative;
             margin-bottom: 1rem;
         }
 
+        .section-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border: 1px solid var(--accent-green-dim);
+            color: var(--accent-green);
+            font-family: var(--font-pixel);
+            font-size: 1.1rem;
+            flex-shrink: 0;
+            background: rgba(0, 255, 65, 0.05);
+        }
+
+        .section-title-group h2 {
+            font-family: var(--font-pixel);
+            font-size: 1.1rem;
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-primary);
+            line-height: 1.2;
+        }
+
+        .section-title-group .section-sub {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-top: 0.15rem;
+        }
+
+        .section-desc {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 1rem;
+            line-height: 1.7;
+        }
+
+        /* ===== Inputs ===== */
         .input-field {
             width: 100%;
-            padding: 0.85rem 1.1rem;
+            padding: 0.7rem 0.8rem;
             border: 1px solid var(--border);
-            border-radius: var(--radius-md);
+            border-radius: var(--radius);
             background: var(--bg-input);
             color: var(--text-primary);
-            font-family: 'Inter', sans-serif;
-            font-size: 0.95rem;
-            transition: all 0.25s ease;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
             outline: none;
+            margin-bottom: 0.75rem;
         }
 
         .input-field::placeholder {
             color: var(--text-muted);
-            font-weight: 300;
         }
 
         .input-field:focus {
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 0 3px var(--accent-blue-glow), var(--shadow-sm);
+            border-color: var(--accent-green-dim);
+            background: var(--bg-input-focus);
+            box-shadow: 0 0 0 1px var(--accent-green-glow);
         }
 
         /* ===== Buttons ===== */
@@ -217,70 +257,101 @@
             justify-content: center;
             gap: 0.5rem;
             width: 100%;
-            padding: 0.85rem 1.5rem;
-            border: none;
-            border-radius: var(--radius-md);
-            font-family: 'Inter', sans-serif;
-            font-size: 0.95rem;
-            font-weight: 600;
+            padding: 0.65rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-family: var(--font-pixel);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
             cursor: pointer;
-            transition: all 0.25s ease;
+            transition: all 0.2s ease;
             position: relative;
-            overflow: hidden;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
-            color: white;
-            box-shadow: 0 4px 16px var(--accent-blue-glow);
+            background: var(--bg-input);
+            color: var(--text-primary);
+            border-color: var(--border-hover);
         }
 
         .btn-primary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 24px var(--accent-blue-glow), var(--shadow-glow);
+            background: var(--bg-input-focus);
+            border-color: var(--accent-green-dim);
+            color: var(--accent-green);
+            box-shadow: 0 0 8px var(--accent-green-glow);
         }
 
         .btn-primary:active {
-            transform: translateY(0);
+            transform: scale(0.98);
         }
 
         .btn-primary:disabled {
-            opacity: 0.4;
+            opacity: 0.3;
             cursor: not-allowed;
-            transform: none;
+        }
+
+        .btn-primary:disabled:hover {
+            background: var(--bg-input);
+            border-color: var(--border-hover);
+            color: var(--text-primary);
             box-shadow: none;
         }
 
         .btn-copy {
             width: auto;
-            padding: 0.4rem 0.75rem;
+            padding: 0.3rem 0.7rem;
             background: transparent;
             border: 1px solid var(--border);
-            color: var(--text-secondary);
-            font-size: 0.8rem;
-            border-radius: var(--radius-sm);
-            font-weight: 500;
+            color: var(--text-muted);
+            font-family: var(--font-pixel);
+            font-size: 0.7rem;
+            letter-spacing: 0.08em;
         }
 
         .btn-copy:hover {
-            border-color: var(--success);
-            color: var(--success);
-            background: var(--success-glow);
+            border-color: var(--accent-green-dim);
+            color: var(--accent-green);
         }
 
         .btn-copy.copied {
-            border-color: var(--success);
-            color: var(--success);
-            background: var(--success-glow);
+            border-color: var(--accent-green-dim);
+            color: var(--accent-green);
         }
+
+        /* ===== Dot prefix for labels ===== */
+        .dot-label {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-family: var(--font-pixel);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 0.15rem;
+        }
+
+        .dot-label::before {
+            content: '▸';
+            font-size: 0.7rem;
+        }
+
+        .dot-label.t1 { color: var(--accent-green); }
+        .dot-label.t1::before { color: var(--accent-green); }
+        .dot-label.t2 { color: var(--accent-cyan); }
+        .dot-label.t2::before { color: var(--accent-cyan); }
+        .dot-label.t3 { color: var(--accent-yellow); }
+        .dot-label.t3::before { color: var(--accent-yellow); }
+        .dot-label.t4 { color: var(--accent-purple); }
+        .dot-label.t4::before { color: var(--accent-purple); }
 
         /* ===== Loading Spinner ===== */
         .spinner {
             display: none;
-            width: 18px;
-            height: 18px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-top-color: white;
+            width: 14px;
+            height: 14px;
+            border: 2px solid var(--text-muted);
+            border-top-color: var(--accent-green);
             border-radius: 50%;
             animation: spin 0.6s linear infinite;
         }
@@ -292,245 +363,221 @@
         .btn.loading .spinner { display: inline-block; }
         .btn.loading .btn-text { display: none; }
 
-        /* ===== Password Cards Grid ===== */
-        .passwords-grid {
-            display: grid;
+        /* ===== Password Results ===== */
+        .passwords-list {
+            display: flex;
+            flex-direction: column;
             gap: 0.75rem;
-            margin-top: 1.25rem;
+            margin-top: 1rem;
         }
 
-        .password-card {
-            background: var(--bg-glass);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            padding: 1rem 1.1rem;
+        .password-item {
+            padding: 0.6rem 0;
+            border-bottom: 1px solid var(--border);
             opacity: 0;
-            transform: translateY(12px);
-            animation: cardAppear 0.4s ease forwards;
-            transition: border-color 0.2s ease, background 0.2s ease;
+            transform: translateX(-8px);
+            animation: itemSlide 0.3s ease forwards;
         }
 
-        .password-card:hover {
-            border-color: var(--border-hover);
-            background: var(--bg-card-hover);
+        .password-item:last-child {
+            border-bottom: none;
         }
 
-        .password-card:nth-child(1) { animation-delay: 0.05s; }
-        .password-card:nth-child(2) { animation-delay: 0.12s; }
-        .password-card:nth-child(3) { animation-delay: 0.19s; }
-        .password-card:nth-child(4) { animation-delay: 0.26s; }
+        .password-item:nth-child(1) { animation-delay: 0.05s; }
+        .password-item:nth-child(2) { animation-delay: 0.1s; }
+        .password-item:nth-child(3) { animation-delay: 0.15s; }
+        .password-item:nth-child(4) { animation-delay: 0.2s; }
 
-        @keyframes cardAppear {
+        @keyframes itemSlide {
             to {
                 opacity: 1;
-                transform: translateY(0);
+                transform: translateX(0);
             }
         }
 
-        .password-card-header {
+        .password-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 0.6rem;
+            gap: 0.5rem;
         }
-
-        .password-type {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .password-type .dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-        }
-
-        .password-type .dot.t1 { background: var(--accent-blue); }
-        .password-type .dot.t2 { background: var(--accent-purple); }
-        .password-type .dot.t3 { background: var(--accent-cyan); }
-        .password-type .dot.t4 { background: var(--warning); }
 
         .password-value {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 1.05rem;
-            font-weight: 500;
+            font-family: var(--font-mono);
+            font-size: 0.95rem;
             color: var(--text-primary);
             word-break: break-all;
-            line-height: 1.5;
+            flex: 1;
             user-select: all;
         }
 
-        /* ===== Requirements Checker ===== */
+        /* ===== Empty State ===== */
+        .empty-state {
+            text-align: center;
+            padding: 1.5rem 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .empty-state .cursor-blink {
+            display: inline-block;
+            width: 8px;
+            height: 14px;
+            background: var(--accent-green);
+            margin-left: 4px;
+            animation: blink 1s step-end infinite;
+            vertical-align: middle;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        /* ===== Requirements ===== */
         .requirements-list {
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
-            margin-top: 1rem;
+            gap: 0.4rem;
+            margin-top: 0.5rem;
         }
 
         .requirement {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
-            padding: 0.7rem 0.9rem;
-            background: var(--bg-glass);
+            gap: 0.6rem;
+            padding: 0.55rem 0.7rem;
             border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            transition: all 0.3s ease;
+            border-radius: var(--radius);
+            background: var(--bg-input);
+            transition: all 0.25s ease;
         }
 
         .requirement.met {
-            border-color: rgba(16, 185, 129, 0.3);
-            background: rgba(16, 185, 129, 0.05);
+            border-color: var(--border-green);
+            background: rgba(0, 255, 65, 0.03);
         }
 
-        .requirement.not-met {
-            border-color: var(--border);
-        }
-
-        .req-indicator {
-            position: relative;
-            width: 22px;
-            height: 22px;
-            border-radius: 6px;
-            border: 2px solid var(--border);
+        /* Checkbox indicator */
+        .req-check {
+            width: 18px;
+            height: 18px;
+            border: 1.5px solid var(--text-muted);
+            border-radius: 2px;
             flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s ease;
-            overflow: hidden;
+            transition: all 0.25s ease;
+            position: relative;
+            background: transparent;
         }
 
-        .req-indicator::after {
+        .req-check::after {
             content: '';
-            position: absolute;
-            width: 10px;
+            width: 9px;
             height: 5px;
-            border-left: 2px solid white;
-            border-bottom: 2px solid white;
+            border-left: 2px solid var(--bg-primary);
+            border-bottom: 2px solid var(--bg-primary);
             transform: rotate(-45deg) scale(0);
-            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
             margin-top: -2px;
         }
 
-        .requirement.met .req-indicator {
-            background: var(--success);
-            border-color: var(--success);
-            box-shadow: 0 0 12px var(--success-glow);
+        .requirement.met .req-check {
+            background: var(--accent-green);
+            border-color: var(--accent-green);
+            box-shadow: 0 0 6px var(--accent-green-glow);
         }
 
-        .requirement.met .req-indicator::after {
+        .requirement.met .req-check::after {
             transform: rotate(-45deg) scale(1);
         }
 
-        .requirement.not-met .req-indicator {
-            border-color: var(--text-muted);
-        }
-
         .req-label {
-            font-size: 0.9rem;
+            font-family: var(--font-pixel);
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
             color: var(--text-secondary);
-            transition: color 0.3s ease;
-            font-weight: 400;
+            transition: color 0.25s ease;
         }
 
         .requirement.met .req-label {
-            color: var(--success);
-            font-weight: 500;
+            color: var(--accent-green);
         }
 
         /* ===== Strength Bar ===== */
-        .strength-bar-wrapper {
-            margin-top: 1.25rem;
+        .strength-wrapper {
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border);
         }
 
-        .strength-bar-header {
+        .strength-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.4rem;
         }
 
         .strength-label {
-            font-size: 0.8rem;
-            font-weight: 500;
+            font-family: var(--font-pixel);
+            font-size: 0.72rem;
             color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.08em;
         }
 
         .strength-value {
-            font-size: 0.8rem;
-            font-weight: 600;
+            font-family: var(--font-pixel);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
             transition: color 0.3s ease;
         }
 
-        .strength-bar-track {
+        .strength-track {
             width: 100%;
-            height: 6px;
-            background: rgba(148, 163, 184, 0.1);
-            border-radius: 3px;
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
             overflow: hidden;
         }
 
-        .strength-bar-fill {
+        .strength-fill {
             height: 100%;
             width: 0%;
-            border-radius: 3px;
-            transition: width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-                        background 0.4s ease;
-            background: var(--error);
+            border-radius: 2px;
+            transition: width 0.4s ease, background 0.4s ease;
         }
 
-        .strength-bar-fill[data-level="0"] { width: 0%; background: var(--text-muted); }
-        .strength-bar-fill[data-level="1"] { width: 20%; background: var(--error); }
-        .strength-bar-fill[data-level="2"] { width: 40%; background: #f97316; }
-        .strength-bar-fill[data-level="3"] { width: 60%; background: var(--warning); }
-        .strength-bar-fill[data-level="4"] { width: 80%; background: #84cc16; }
-        .strength-bar-fill[data-level="5"] { width: 100%; background: var(--success); }
+        .strength-fill[data-level="0"] { width: 0%; background: var(--text-muted); }
+        .strength-fill[data-level="1"] { width: 20%; background: var(--accent-red); }
+        .strength-fill[data-level="2"] { width: 40%; background: var(--accent-orange); }
+        .strength-fill[data-level="3"] { width: 60%; background: var(--accent-yellow); }
+        .strength-fill[data-level="4"] { width: 80%; background: var(--accent-green-dim); }
+        .strength-fill[data-level="5"] { width: 100%; background: var(--accent-green); }
 
-        /* ===== Empty State ===== */
-        .empty-state {
-            text-align: center;
-            padding: 2rem 1rem;
-            color: var(--text-muted);
-        }
-
-        .empty-state .empty-icon {
-            font-size: 2.5rem;
-            margin-bottom: 0.75rem;
-            opacity: 0.5;
-        }
-
-        .empty-state p {
-            font-size: 0.9rem;
-            font-weight: 300;
-        }
-
-        /* ===== Toast notification ===== */
+        /* ===== Toast ===== */
         .toast {
             position: fixed;
-            bottom: 2rem;
+            bottom: 1.5rem;
             left: 50%;
-            transform: translateX(-50%) translateY(80px);
-            background: var(--bg-secondary);
-            border: 1px solid var(--success);
-            color: var(--success);
-            padding: 0.75rem 1.5rem;
-            border-radius: var(--radius-md);
-            font-size: 0.9rem;
-            font-weight: 500;
-            z-index: 1000;
+            transform: translateX(-50%) translateY(60px);
+            background: var(--bg-card);
+            border: 1px solid var(--accent-green-dim);
+            color: var(--accent-green);
+            padding: 0.55rem 1.2rem;
+            border-radius: var(--radius);
+            font-family: var(--font-pixel);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            z-index: 10000;
             opacity: 0;
-            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
             pointer-events: none;
         }
 
@@ -540,17 +587,17 @@
         }
 
         /* ===== Responsive ===== */
-        @media (max-width: 600px) {
+        @media (max-width: 720px) {
             .app-wrapper {
                 padding: 1.25rem 1rem 3rem;
             }
 
-            .section-card {
-                padding: 1.5rem;
+            .glitch-title {
+                font-size: 1.5rem;
             }
 
-            .app-header h1 {
-                font-size: 1.4rem;
+            .section-card {
+                padding: 1.25rem;
             }
         }
     </style>
@@ -560,98 +607,104 @@
 <div class="app-wrapper">
     <!-- Header -->
     <header class="app-header">
-        <div class="icon">🔐</div>
-        <h1>Gestor de Contraseñas Seguras</h1>
-        <p>Genera contraseñas fuertes desde tus palabras y verifica su seguridad al instante</p>
+        <h1 class="glitch-title" data-text="Gestor de Contrasenas">Gestor de Contrasenas</h1>
+        <p class="app-subtitle">Genera contraseñas fuertes y verifica su seguridad al instante</p>
     </header>
 
-    <!-- Section 1: Generator -->
-    <section class="section-card" id="generator-section">
-        <div class="section-title">
-            <span class="badge gen">⚡</span>
-            <h2>Generador de Contraseñas</h2>
-        </div>
-        <p class="section-subtitle">Ingresa una o varias palabras y se generarán 4 contraseñas únicas que cumplen todos los requisitos de seguridad.</p>
+    <!-- Two column layout -->
+    <div class="main-grid">
 
-        <div class="input-group">
+        <!-- Column 1: Generator -->
+        <section class="section-card" id="generator-section">
+            <div class="section-header">
+                <span class="section-number">1</span>
+                <div class="section-title-group">
+                    <h2>Generador</h2>
+                    <div class="section-sub">de contraseñas</div>
+                </div>
+            </div>
+
+            <p class="section-desc">Ingresa una o varias palabras y se generarán 4 contraseñas únicas con requisitos de seguridad.</p>
+
             <input
                 type="text"
                 id="wordsInput"
                 class="input-field"
-                placeholder="Ej: mi perro salta alto"
+                placeholder="gatogordo"
                 autocomplete="off"
             >
-        </div>
 
-        <button class="btn btn-primary" id="generateBtn" disabled>
-            <span class="spinner"></span>
-            <span class="btn-text">Generar 4 Contraseñas</span>
-        </button>
+            <button class="btn btn-primary" id="generateBtn" disabled>
+                <span class="spinner"></span>
+                <span class="btn-text">· Generar 4 contraseñas</span>
+            </button>
 
-        <div id="passwordsContainer">
-            <div class="empty-state" id="emptyState">
-                <div class="empty-icon">🔑</div>
-                <p>Tus contraseñas generadas aparecerán aquí</p>
+            <div id="passwordsContainer">
+                <div class="empty-state" id="emptyState">
+                    esperando input<span class="cursor-blink"></span>
+                </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Section 2: Real-time Checker -->
-    <section class="section-card" id="checker-section">
-        <div class="section-title">
-            <span class="badge check">🛡️</span>
-            <h2>Verificador en Tiempo Real</h2>
-        </div>
-        <p class="section-subtitle">Escribe una contraseña y observa en tiempo real si cumple con cada requisito de seguridad.</p>
+        <!-- Column 2: Real-time Checker -->
+        <section class="section-card" id="checker-section">
+            <div class="section-header">
+                <span class="section-number">2</span>
+                <div class="section-title-group">
+                    <h2>Verificador</h2>
+                    <div class="section-sub">en tiempo real</div>
+                </div>
+            </div>
 
-        <div class="input-group">
+            <p class="section-desc">Escribe una contraseña y observa en tiempo real si cumple cada requisito de seguridad.</p>
+
             <input
                 type="text"
                 id="checkInput"
                 class="input-field"
-                placeholder="Escribe tu contraseña aquí..."
+                placeholder="escribe tu contraseña..."
                 autocomplete="off"
             >
-        </div>
 
-        <div class="requirements-list" id="requirementsList">
-            <div class="requirement not-met" data-check="length">
-                <div class="req-indicator"></div>
-                <span class="req-label">Al menos 12 caracteres</span>
+            <div class="requirements-list" id="requirementsList">
+                <div class="requirement not-met" data-check="length">
+                    <div class="req-check"></div>
+                    <span class="req-label">Al menos 12 caracteres</span>
+                </div>
+                <div class="requirement not-met" data-check="uppercase">
+                    <div class="req-check"></div>
+                    <span class="req-label">Contiene al menos una mayúscula (A-Z)</span>
+                </div>
+                <div class="requirement not-met" data-check="lowercase">
+                    <div class="req-check"></div>
+                    <span class="req-label">Contiene al menos una minúscula (a-z)</span>
+                </div>
+                <div class="requirement not-met" data-check="number">
+                    <div class="req-check"></div>
+                    <span class="req-label">Contiene al menos un número (0-9)</span>
+                </div>
+                <div class="requirement not-met" data-check="special">
+                    <div class="req-check"></div>
+                    <span class="req-label">Contiene al menos un carácter especial (!@#...)</span>
+                </div>
             </div>
-            <div class="requirement not-met" data-check="uppercase">
-                <div class="req-indicator"></div>
-                <span class="req-label">Contiene al menos una mayúscula (A-Z)</span>
-            </div>
-            <div class="requirement not-met" data-check="lowercase">
-                <div class="req-indicator"></div>
-                <span class="req-label">Contiene al menos una minúscula (a-z)</span>
-            </div>
-            <div class="requirement not-met" data-check="number">
-                <div class="req-indicator"></div>
-                <span class="req-label">Contiene al menos un número (0-9)</span>
-            </div>
-            <div class="requirement not-met" data-check="special">
-                <div class="req-indicator"></div>
-                <span class="req-label">Contiene al menos un carácter especial (!@#$...)</span>
-            </div>
-        </div>
 
-        <!-- Strength Bar -->
-        <div class="strength-bar-wrapper">
-            <div class="strength-bar-header">
-                <span class="strength-label">Fortaleza</span>
-                <span class="strength-value" id="strengthText" style="color: var(--text-muted);">—</span>
+            <!-- Strength Bar -->
+            <div class="strength-wrapper">
+                <div class="strength-row">
+                    <span class="strength-label">Fortaleza</span>
+                    <span class="strength-value" id="strengthText" style="color: var(--text-muted);">—</span>
+                </div>
+                <div class="strength-track">
+                    <div class="strength-fill" id="strengthFill" data-level="0"></div>
+                </div>
             </div>
-            <div class="strength-bar-track">
-                <div class="strength-bar-fill" id="strengthFill" data-level="0"></div>
-            </div>
-        </div>
-    </section>
+        </section>
+    </div>
 </div>
 
-<!-- Toast notification -->
-<div class="toast" id="toast">✓ Copiada al portapapeles</div>
+<!-- Toast -->
+<div class="toast" id="toast">✓ copiada al portapapeles</div>
 
 <script>
     /* ===== Elements ===== */
@@ -674,11 +727,11 @@
     const strengthLabels = ['—', 'Muy débil', 'Débil', 'Moderada', 'Fuerte', '¡Excelente!'];
     const strengthColors = [
         'var(--text-muted)',
-        'var(--error)',
-        '#f97316',
-        'var(--warning)',
-        '#84cc16',
-        'var(--success)',
+        'var(--accent-red)',
+        'var(--accent-orange)',
+        'var(--accent-yellow)',
+        'var(--accent-green-dim)',
+        'var(--accent-green)',
     ];
 
     /* ===== Generator ===== */
@@ -710,47 +763,46 @@
     });
 
     function renderPasswords(passwords) {
-        // Remove empty state and old cards
         passwordsContainer.innerHTML = '';
 
-        const grid = document.createElement('div');
-        grid.className = 'passwords-grid';
+        const list = document.createElement('div');
+        list.className = 'passwords-list';
 
         passwords.forEach((pwd, i) => {
             const type = passwordTypes[i] || passwordTypes[0];
-            const card = document.createElement('div');
-            card.className = 'password-card';
-            card.innerHTML = `
-                <div class="password-card-header">
-                    <span class="password-type">
-                        <span class="dot ${type.dotClass}"></span>
-                        ${type.label}
-                    </span>
-                    <button class="btn btn-copy" onclick="copyPassword(this, '${escapeHtml(pwd)}')">Copiar</button>
+            const item = document.createElement('div');
+            item.className = 'password-item';
+            item.innerHTML = `
+                <div class="dot-label ${type.dotClass}">${type.label}</div>
+                <div class="password-row">
+                    <span class="password-value">${escapeHtml(pwd)}</span>
+                    <button class="btn btn-copy" onclick="copyPassword(this, '${escapeForAttr(pwd)}')">Copiar</button>
                 </div>
-                <div class="password-value">${escapeHtml(pwd)}</div>
             `;
-            grid.appendChild(card);
+            list.appendChild(item);
         });
 
-        passwordsContainer.appendChild(grid);
+        passwordsContainer.appendChild(list);
     }
 
     function escapeHtml(str) {
         const div = document.createElement('div');
         div.appendChild(document.createTextNode(str));
-        return div.innerHTML.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        return div.innerHTML;
     }
 
-    /* ===== Copy to clipboard ===== */
+    function escapeForAttr(str) {
+        return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    }
+
+    /* ===== Copy ===== */
     function copyPassword(btn, text) {
-        // Unescape the text
         const textarea = document.createElement('textarea');
         textarea.innerHTML = text.replace(/&quot;/g, '"').replace(/\\'/g, "'");
         const cleanText = textarea.value;
 
         navigator.clipboard.writeText(cleanText).then(() => {
-            btn.textContent = '✓ Copiada';
+            btn.textContent = '✓ OK';
             btn.classList.add('copied');
             showToast();
 
@@ -763,10 +815,10 @@
 
     function showToast() {
         toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 2200);
+        setTimeout(() => toast.classList.remove('show'), 2000);
     }
 
-    /* ===== Real-time Checker (client-side for instant feedback) ===== */
+    /* ===== Real-time Checker ===== */
     checkInput.addEventListener('input', () => {
         const pwd = checkInput.value;
         const checks = {
@@ -791,7 +843,6 @@
             }
         });
 
-        // Update strength bar
         const level = pwd.length === 0 ? 0 : metCount;
         strengthFill.setAttribute('data-level', level);
         strengthText.textContent = strengthLabels[level];
