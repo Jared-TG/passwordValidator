@@ -3,275 +3,800 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador y Validador de Contraseñas</title>
+    <meta name="description" content="Generador y validador de contraseñas seguras. Genera 4 contraseñas únicas desde palabras clave y verifica requisitos en tiempo real.">
+    <title>Generador y Validador de Contraseñas Seguras</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
+        /* ===== Design Tokens ===== */
         :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --text-primary: #f8fafc;
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #111827;
+            --bg-card: rgba(17, 24, 39, 0.6);
+            --bg-card-hover: rgba(30, 41, 59, 0.7);
+            --bg-input: rgba(15, 23, 42, 0.8);
+            --bg-glass: rgba(255, 255, 255, 0.03);
+
+            --text-primary: #f1f5f9;
             --text-secondary: #94a3b8;
-            --accent: #3b82f6;
-            --accent-hover: #2563eb;
+            --text-muted: #64748b;
+
+            --accent-blue: #3b82f6;
+            --accent-blue-glow: rgba(59, 130, 246, 0.25);
+            --accent-purple: #8b5cf6;
+            --accent-purple-glow: rgba(139, 92, 246, 0.2);
+            --accent-cyan: #06b6d4;
+
             --success: #10b981;
+            --success-glow: rgba(16, 185, 129, 0.2);
             --error: #ef4444;
-            --border: #334155;
+            --error-glow: rgba(239, 68, 68, 0.15);
+            --warning: #f59e0b;
+
+            --border: rgba(148, 163, 184, 0.1);
+            --border-hover: rgba(148, 163, 184, 0.2);
+
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.5);
+            --shadow-glow: 0 0 30px var(--accent-blue-glow);
+        }
+
+        /* ===== Reset & Base ===== */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
             color: var(--text-primary);
-            margin: 0;
-            padding: 2rem;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
         }
 
-        .container {
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            padding: 2rem;
+        /* ===== Animated Background ===== */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            max-width: 600px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-            border: 1px solid var(--border);
+            height: 100%;
+            background:
+                radial-gradient(ellipse 80% 60% at 20% 10%, rgba(59, 130, 246, 0.08), transparent),
+                radial-gradient(ellipse 60% 50% at 80% 80%, rgba(139, 92, 246, 0.06), transparent),
+                radial-gradient(ellipse 50% 40% at 50% 50%, rgba(6, 182, 212, 0.04), transparent);
+            pointer-events: none;
+            z-index: 0;
         }
 
-        h1 {
+        /* ===== Layout ===== */
+        .app-wrapper {
+            position: relative;
+            z-index: 1;
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem;
+        }
+
+        /* ===== Header ===== */
+        .app-header {
             text-align: center;
-            margin-top: 0;
-            color: var(--accent);
+            margin-bottom: 2.5rem;
         }
 
-        .section {
-            margin-bottom: 2rem;
-            padding-bottom: 2rem;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .section:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-            padding-bottom: 0;
-        }
-
-        h2 {
-            font-size: 1.2rem;
+        .app-header .icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 64px;
+            height: 64px;
+            border-radius: var(--radius-lg);
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            font-size: 1.8rem;
             margin-bottom: 1rem;
-            color: var(--text-secondary);
+            box-shadow: 0 8px 32px var(--accent-blue-glow);
         }
 
-        input[type="text"], input[type="password"] {
-            width: 100%;
-            padding: 0.75rem;
-            margin-bottom: 0.5rem;
+        .app-header h1 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-blue) 50%, var(--accent-purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.02em;
+        }
+
+        .app-header p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-top: 0.5rem;
+            font-weight: 300;
+        }
+
+        /* ===== Section Cards ===== */
+        .section-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--border);
-            border-radius: 6px;
-            background-color: var(--bg-color);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .section-card:hover {
+            border-color: var(--border-hover);
+            box-shadow: var(--shadow-md);
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .section-title .badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-sm);
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .section-title .badge.gen {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+        }
+
+        .section-title .badge.check {
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+        }
+
+        .section-title h2 {
+            font-size: 1.15rem;
+            font-weight: 600;
             color: var(--text-primary);
-            box-sizing: border-box;
-            font-size: 1rem;
         }
 
-        input:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        .section-subtitle {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-bottom: 1.25rem;
+            line-height: 1.5;
         }
 
-        button {
-            background-color: var(--accent);
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 1rem;
-            transition: background-color 0.2s;
+        /* ===== Inputs ===== */
+        .input-group {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .input-field {
             width: 100%;
+            padding: 0.85rem 1.1rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            transition: all 0.25s ease;
+            outline: none;
         }
 
-        button:hover {
-            background-color: var(--accent-hover);
+        .input-field::placeholder {
+            color: var(--text-muted);
+            font-weight: 300;
         }
 
-        button:disabled {
-            background-color: var(--border);
-            color: var(--text-secondary);
+        .input-field:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px var(--accent-blue-glow), var(--shadow-sm);
+        }
+
+        /* ===== Buttons ===== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0.85rem 1.5rem;
+            border: none;
+            border-radius: var(--radius-md);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            color: white;
+            box-shadow: 0 4px 16px var(--accent-blue-glow);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 24px var(--accent-blue-glow), var(--shadow-glow);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.4;
             cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
 
-        .error-list {
-            color: var(--error);
-            font-size: 0.9rem;
-            margin-top: 0.5rem;
-            list-style-type: none;
-            padding-left: 0;
+        .btn-copy {
+            width: auto;
+            padding: 0.4rem 0.75rem;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            border-radius: var(--radius-sm);
+            font-weight: 500;
         }
 
-        .error-list li::before {
-            content: "✗ ";
-        }
-
-        .success-msg {
+        .btn-copy:hover {
+            border-color: var(--success);
             color: var(--success);
-            font-size: 0.9rem;
-            margin-top: 0.5rem;
-            display: none;
+            background: var(--success-glow);
         }
 
-        .success-msg::before {
-            content: "✓ ";
+        .btn-copy.copied {
+            border-color: var(--success);
+            color: var(--success);
+            background: var(--success-glow);
         }
 
-        .result-box {
-            margin-top: 1rem;
-            padding: 1rem;
-            background-color: var(--bg-color);
-            border: 1px solid var(--success);
-            border-radius: 6px;
-            word-break: break-all;
+        /* ===== Loading Spinner ===== */
+        .spinner {
             display: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .btn.loading .spinner { display: inline-block; }
+        .btn.loading .btn-text { display: none; }
+
+        /* ===== Password Cards Grid ===== */
+        .passwords-grid {
+            display: grid;
+            gap: 0.75rem;
+            margin-top: 1.25rem;
+        }
+
+        .password-card {
+            background: var(--bg-glass);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 1rem 1.1rem;
+            opacity: 0;
+            transform: translateY(12px);
+            animation: cardAppear 0.4s ease forwards;
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .password-card:hover {
+            border-color: var(--border-hover);
+            background: var(--bg-card-hover);
+        }
+
+        .password-card:nth-child(1) { animation-delay: 0.05s; }
+        .password-card:nth-child(2) { animation-delay: 0.12s; }
+        .password-card:nth-child(3) { animation-delay: 0.19s; }
+        .password-card:nth-child(4) { animation-delay: 0.26s; }
+
+        @keyframes cardAppear {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .password-card-header {
+            display: flex;
             align-items: center;
             justify-content: space-between;
+            margin-bottom: 0.6rem;
         }
 
-        .result-box span {
-            font-family: monospace;
-            font-size: 1.2rem;
+        .password-type {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .password-type .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .password-type .dot.t1 { background: var(--accent-blue); }
+        .password-type .dot.t2 { background: var(--accent-purple); }
+        .password-type .dot.t3 { background: var(--accent-cyan); }
+        .password-type .dot.t4 { background: var(--warning); }
+
+        .password-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.05rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            word-break: break-all;
+            line-height: 1.5;
+            user-select: all;
+        }
+
+        /* ===== Requirements Checker ===== */
+        .requirements-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .requirement {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.7rem 0.9rem;
+            background: var(--bg-glass);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            transition: all 0.3s ease;
+        }
+
+        .requirement.met {
+            border-color: rgba(16, 185, 129, 0.3);
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        .requirement.not-met {
+            border-color: var(--border);
+        }
+
+        .req-indicator {
+            position: relative;
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            border: 2px solid var(--border);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .req-indicator::after {
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 5px;
+            border-left: 2px solid white;
+            border-bottom: 2px solid white;
+            transform: rotate(-45deg) scale(0);
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            margin-top: -2px;
+        }
+
+        .requirement.met .req-indicator {
+            background: var(--success);
+            border-color: var(--success);
+            box-shadow: 0 0 12px var(--success-glow);
+        }
+
+        .requirement.met .req-indicator::after {
+            transform: rotate(-45deg) scale(1);
+        }
+
+        .requirement.not-met .req-indicator {
+            border-color: var(--text-muted);
+        }
+
+        .req-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            transition: color 0.3s ease;
+            font-weight: 400;
+        }
+
+        .requirement.met .req-label {
             color: var(--success);
+            font-weight: 500;
         }
 
-        .copy-btn {
-            background: none;
+        /* ===== Strength Bar ===== */
+        .strength-bar-wrapper {
+            margin-top: 1.25rem;
+        }
+
+        .strength-bar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .strength-label {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .strength-value {
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .strength-bar-track {
+            width: 100%;
+            height: 6px;
+            background: rgba(148, 163, 184, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .strength-bar-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 3px;
+            transition: width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                        background 0.4s ease;
+            background: var(--error);
+        }
+
+        .strength-bar-fill[data-level="0"] { width: 0%; background: var(--text-muted); }
+        .strength-bar-fill[data-level="1"] { width: 20%; background: var(--error); }
+        .strength-bar-fill[data-level="2"] { width: 40%; background: #f97316; }
+        .strength-bar-fill[data-level="3"] { width: 60%; background: var(--warning); }
+        .strength-bar-fill[data-level="4"] { width: 80%; background: #84cc16; }
+        .strength-bar-fill[data-level="5"] { width: 100%; background: var(--success); }
+
+        /* ===== Empty State ===== */
+        .empty-state {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: var(--text-muted);
+        }
+
+        .empty-state .empty-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.75rem;
+            opacity: 0.5;
+        }
+
+        .empty-state p {
+            font-size: 0.9rem;
+            font-weight: 300;
+        }
+
+        /* ===== Toast notification ===== */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: var(--bg-secondary);
             border: 1px solid var(--success);
             color: var(--success);
-            width: auto;
-            padding: 0.5rem 1rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-md);
             font-size: 0.9rem;
+            font-weight: 500;
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            pointer-events: none;
         }
 
-        .copy-btn:hover {
-            background: var(--success);
-            color: var(--bg-color);
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 600px) {
+            .app-wrapper {
+                padding: 1.25rem 1rem 3rem;
+            }
+
+            .section-card {
+                padding: 1.5rem;
+            }
+
+            .app-header h1 {
+                font-size: 1.4rem;
+            }
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>Gestor de Contraseñas Seguras</h1>
+<div class="app-wrapper">
+    <!-- Header -->
+    <header class="app-header">
+        <div class="icon">🔐</div>
+        <h1>Gestor de Contraseñas Seguras</h1>
+        <p>Genera contraseñas fuertes desde tus palabras y verifica su seguridad al instante</p>
+    </header>
 
-    <!-- Opción 1: Validar Manualmente -->
-    <div class="section">
-        <h2>1. Ingresa tu propia contraseña</h2>
-        <input type="text" id="manualInput" placeholder="Escribe tu contraseña aquí...">
-        <ul id="errorList" class="error-list"></ul>
-        <div id="successMsg" class="success-msg">La contraseña cumple todos los requisitos.</div>
-        <button id="saveBtn" disabled onclick="alert('¡Contraseña guardada con éxito!')">Guardar Contraseña</button>
-    </div>
-
-    <!-- Opción 2: Generar desde Palabras -->
-    <div class="section">
-        <h2>2. Generar a partir de palabras</h2>
-        <input type="text" id="wordsInput" placeholder="Ej: mi perro salta">
-        <button id="generateWordsBtn">Generar Contraseña Segura</button>
-        <div id="wordsResultBox" class="result-box">
-            <span id="wordsResultText"></span>
-            <button class="copy-btn" onclick="copyToClipboard('wordsResultText')">Copiar</button>
+    <!-- Section 1: Generator -->
+    <section class="section-card" id="generator-section">
+        <div class="section-title">
+            <span class="badge gen">⚡</span>
+            <h2>Generador de Contraseñas</h2>
         </div>
-    </div>
+        <p class="section-subtitle">Ingresa una o varias palabras y se generarán 4 contraseñas únicas que cumplen todos los requisitos de seguridad.</p>
 
-    <!-- Opción 3: Generar Aleatoriamente -->
-    <div class="section">
-        <h2>3. Generación Aleatoria</h2>
-        <button id="generateRandomBtn">Generar Contraseña Aleatoria</button>
-        <div id="randomResultBox" class="result-box">
-            <span id="randomResultText"></span>
-            <button class="copy-btn" onclick="copyToClipboard('randomResultText')">Copiar</button>
+        <div class="input-group">
+            <input
+                type="text"
+                id="wordsInput"
+                class="input-field"
+                placeholder="Ej: mi perro salta alto"
+                autocomplete="off"
+            >
         </div>
-    </div>
+
+        <button class="btn btn-primary" id="generateBtn" disabled>
+            <span class="spinner"></span>
+            <span class="btn-text">Generar 4 Contraseñas</span>
+        </button>
+
+        <div id="passwordsContainer">
+            <div class="empty-state" id="emptyState">
+                <div class="empty-icon">🔑</div>
+                <p>Tus contraseñas generadas aparecerán aquí</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 2: Real-time Checker -->
+    <section class="section-card" id="checker-section">
+        <div class="section-title">
+            <span class="badge check">🛡️</span>
+            <h2>Verificador en Tiempo Real</h2>
+        </div>
+        <p class="section-subtitle">Escribe una contraseña y observa en tiempo real si cumple con cada requisito de seguridad.</p>
+
+        <div class="input-group">
+            <input
+                type="text"
+                id="checkInput"
+                class="input-field"
+                placeholder="Escribe tu contraseña aquí..."
+                autocomplete="off"
+            >
+        </div>
+
+        <div class="requirements-list" id="requirementsList">
+            <div class="requirement not-met" data-check="length">
+                <div class="req-indicator"></div>
+                <span class="req-label">Al menos 12 caracteres</span>
+            </div>
+            <div class="requirement not-met" data-check="uppercase">
+                <div class="req-indicator"></div>
+                <span class="req-label">Contiene al menos una mayúscula (A-Z)</span>
+            </div>
+            <div class="requirement not-met" data-check="lowercase">
+                <div class="req-indicator"></div>
+                <span class="req-label">Contiene al menos una minúscula (a-z)</span>
+            </div>
+            <div class="requirement not-met" data-check="number">
+                <div class="req-indicator"></div>
+                <span class="req-label">Contiene al menos un número (0-9)</span>
+            </div>
+            <div class="requirement not-met" data-check="special">
+                <div class="req-indicator"></div>
+                <span class="req-label">Contiene al menos un carácter especial (!@#$...)</span>
+            </div>
+        </div>
+
+        <!-- Strength Bar -->
+        <div class="strength-bar-wrapper">
+            <div class="strength-bar-header">
+                <span class="strength-label">Fortaleza</span>
+                <span class="strength-value" id="strengthText" style="color: var(--text-muted);">—</span>
+            </div>
+            <div class="strength-bar-track">
+                <div class="strength-bar-fill" id="strengthFill" data-level="0"></div>
+            </div>
+        </div>
+    </section>
 </div>
 
+<!-- Toast notification -->
+<div class="toast" id="toast">✓ Copiada al portapapeles</div>
+
 <script>
-    const manualInput = document.getElementById('manualInput');
-    const errorList = document.getElementById('errorList');
-    const successMsg = document.getElementById('successMsg');
-    const saveBtn = document.getElementById('saveBtn');
+    /* ===== Elements ===== */
+    const wordsInput = document.getElementById('wordsInput');
+    const generateBtn = document.getElementById('generateBtn');
+    const passwordsContainer = document.getElementById('passwordsContainer');
+    const emptyState = document.getElementById('emptyState');
+    const checkInput = document.getElementById('checkInput');
+    const strengthText = document.getElementById('strengthText');
+    const strengthFill = document.getElementById('strengthFill');
+    const toast = document.getElementById('toast');
 
-    // Debounce function
-    let timeoutId;
-    manualInput.addEventListener('input', () => {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => {
-            const password = manualInput.value;
-            if (password.length === 0) {
-                errorList.innerHTML = '';
-                successMsg.style.display = 'none';
-                saveBtn.disabled = true;
-                return;
-            }
+    const passwordTypes = [
+        { label: 'Basada en palabras', dotClass: 't1' },
+        { label: 'Leet Speak', dotClass: 't2' },
+        { label: 'CamelCase + Símbolos', dotClass: 't3' },
+        { label: 'Aleatoria', dotClass: 't4' },
+    ];
 
-            fetch('/api/validate', {
+    const strengthLabels = ['—', 'Muy débil', 'Débil', 'Moderada', 'Fuerte', '¡Excelente!'];
+    const strengthColors = [
+        'var(--text-muted)',
+        'var(--error)',
+        '#f97316',
+        'var(--warning)',
+        '#84cc16',
+        'var(--success)',
+    ];
+
+    /* ===== Generator ===== */
+    wordsInput.addEventListener('input', () => {
+        generateBtn.disabled = wordsInput.value.trim().length === 0;
+    });
+
+    generateBtn.addEventListener('click', async () => {
+        const words = wordsInput.value.trim();
+        if (!words) return;
+
+        generateBtn.classList.add('loading');
+        generateBtn.disabled = true;
+
+        try {
+            const res = await fetch('/api/generate_multiple', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password })
-            })
-            .then(res => res.json())
-            .then(data => {
-                errorList.innerHTML = '';
-                if (data.valid) {
-                    successMsg.style.display = 'block';
-                    saveBtn.disabled = false;
-                } else {
-                    successMsg.style.display = 'none';
-                    saveBtn.disabled = true;
-                    data.errors.forEach(err => {
-                        const li = document.createElement('li');
-                        li.textContent = err;
-                        errorList.appendChild(li);
-                    });
-                }
+                body: JSON.stringify({ words }),
             });
-        }, 300);
+            const data = await res.json();
+            renderPasswords(data.passwords);
+        } catch (err) {
+            console.error('Error generating passwords:', err);
+        } finally {
+            generateBtn.classList.remove('loading');
+            generateBtn.disabled = wordsInput.value.trim().length === 0;
+        }
     });
 
-    document.getElementById('generateWordsBtn').addEventListener('click', () => {
-        const words = document.getElementById('wordsInput').value;
-        if (!words) return alert("Por favor ingresa algunas palabras.");
+    function renderPasswords(passwords) {
+        // Remove empty state and old cards
+        passwordsContainer.innerHTML = '';
 
-        fetch('/api/generate_words', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ words })
-        })
-        .then(res => res.json())
-        .then(data => {
-            const box = document.getElementById('wordsResultBox');
-            document.getElementById('wordsResultText').textContent = data.password;
-            box.style.display = 'flex';
+        const grid = document.createElement('div');
+        grid.className = 'passwords-grid';
+
+        passwords.forEach((pwd, i) => {
+            const type = passwordTypes[i] || passwordTypes[0];
+            const card = document.createElement('div');
+            card.className = 'password-card';
+            card.innerHTML = `
+                <div class="password-card-header">
+                    <span class="password-type">
+                        <span class="dot ${type.dotClass}"></span>
+                        ${type.label}
+                    </span>
+                    <button class="btn btn-copy" onclick="copyPassword(this, '${escapeHtml(pwd)}')">Copiar</button>
+                </div>
+                <div class="password-value">${escapeHtml(pwd)}</div>
+            `;
+            grid.appendChild(card);
         });
-    });
 
-    document.getElementById('generateRandomBtn').addEventListener('click', () => {
-        fetch('/api/generate_random')
-        .then(res => res.json())
-        .then(data => {
-            const box = document.getElementById('randomResultBox');
-            document.getElementById('randomResultText').textContent = data.password;
-            box.style.display = 'flex';
-        });
-    });
+        passwordsContainer.appendChild(grid);
+    }
 
-    function copyToClipboard(elementId) {
-        const text = document.getElementById(elementId).textContent;
-        navigator.clipboard.writeText(text).then(() => {
-            alert('Contraseña copiada al portapapeles');
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    }
+
+    /* ===== Copy to clipboard ===== */
+    function copyPassword(btn, text) {
+        // Unescape the text
+        const textarea = document.createElement('textarea');
+        textarea.innerHTML = text.replace(/&quot;/g, '"').replace(/\\'/g, "'");
+        const cleanText = textarea.value;
+
+        navigator.clipboard.writeText(cleanText).then(() => {
+            btn.textContent = '✓ Copiada';
+            btn.classList.add('copied');
+            showToast();
+
+            setTimeout(() => {
+                btn.textContent = 'Copiar';
+                btn.classList.remove('copied');
+            }, 2000);
         });
     }
+
+    function showToast() {
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2200);
+    }
+
+    /* ===== Real-time Checker (client-side for instant feedback) ===== */
+    checkInput.addEventListener('input', () => {
+        const pwd = checkInput.value;
+        const checks = {
+            length: pwd.length >= 12,
+            uppercase: /[A-Z]/.test(pwd),
+            lowercase: /[a-z]/.test(pwd),
+            number: /[0-9]/.test(pwd),
+            special: /[^A-Za-z0-9]/.test(pwd),
+        };
+
+        let metCount = 0;
+
+        Object.entries(checks).forEach(([key, met]) => {
+            const el = document.querySelector(`.requirement[data-check="${key}"]`);
+            if (met) {
+                el.classList.remove('not-met');
+                el.classList.add('met');
+                metCount++;
+            } else {
+                el.classList.remove('met');
+                el.classList.add('not-met');
+            }
+        });
+
+        // Update strength bar
+        const level = pwd.length === 0 ? 0 : metCount;
+        strengthFill.setAttribute('data-level', level);
+        strengthText.textContent = strengthLabels[level];
+        strengthText.style.color = strengthColors[level];
+    });
 </script>
 </body>
 </html>

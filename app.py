@@ -33,6 +33,21 @@ def generate_random():
     password = password_manager.generate_random()
     return jsonify({'password': password})
 
+@app.route('/api/generate_multiple', methods=['POST'])
+def generate_multiple():
+    data = request.json
+    words = data.get('words', '')
+    passwords = password_manager.generate_multiple_from_words(words)
+    return jsonify({'passwords': passwords})
+
+@app.route('/api/validate_detailed', methods=['POST'])
+def validate_detailed():
+    data = request.json
+    password = data.get('password', '')
+    result = password_manager.validate_password_detailed(password)
+    return jsonify(result)
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
+
