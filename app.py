@@ -25,8 +25,11 @@ def validate():
 def generate_words():
     data = request.json
     words = data.get('words', '')
-    password = password_manager.generate_from_words(words)
-    return jsonify({'password': password})
+    try:
+        password = password_manager.generate_from_words(words)
+        return jsonify({'password': password})
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
 
 @app.route('/api/generate_random', methods=['GET'])
 def generate_random():
@@ -37,8 +40,11 @@ def generate_random():
 def generate_multiple():
     data = request.json
     words = data.get('words', '')
-    passwords = password_manager.generate_multiple_from_words(words)
-    return jsonify({'passwords': passwords})
+    try:
+        passwords = password_manager.generate_multiple_from_words(words)
+        return jsonify({'passwords': passwords})
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
 
 @app.route('/api/validate_detailed', methods=['POST'])
 def validate_detailed():

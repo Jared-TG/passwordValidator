@@ -34,26 +34,36 @@ def _ensure_requirements(pwd_chars: list) -> list:
         pwd_chars[idx] = requirements[i]
     return pwd_chars
 
+def _truncate_and_fix(pwd_str: str, max_length: int = 12) -> str:
+    """Trunca a max_length caracteres y asegura que cumpla los requisitos."""
+    # Rellenar hasta max_length si es necesario
+    while len(pwd_str) < max_length:
+        pwd_str += random.choice(string.ascii_letters + string.digits + string.punctuation)
+    # Truncar a max_length
+    pwd_str = pwd_str[:max_length]
+    # Asegurar requisitos
+    pwd_chars = list(pwd_str)
+    while not validate_password("".join(pwd_chars))['valid']:
+        pwd_chars = _ensure_requirements(pwd_chars)
+    return "".join(pwd_chars)
+
+
 def generate_from_words(words: str) -> str:
+    # Validar longitud máxima de la cadena
+    if len(words) > 75:
+        raise ValueError("La entrada no puede exceder los 75 caracteres.")
+
+    # Validar máximo 3 palabras
+    word_list = words.split()
+    if len(word_list) > 3:
+        raise ValueError("Se permiten máximo 3 palabras.")
+
     # Eliminar espacios y juntar todo
-    base = "".join(words.split())
+    base = "".join(word_list)
     if not base:
         return generate_random()
     
-    # Rellenar hasta 12 caracteres si es necesario
-    while len(base) < 12:
-        base += random.choice(string.ascii_letters + string.digits + string.punctuation)
-    
-    # Convertir a lista para modificar
-    pwd_chars = list(base)
-    
-    # Asegurar que cumple las reglas
-    while not validate_password("".join(pwd_chars))['valid']:
-        pwd_chars = _ensure_requirements(pwd_chars)
-    
-    # Mezclar un poco si las palabras eran muy largas, pero intentaremos mantener la legibilidad
-    # si es posible, aunque los requisitos obligan a meter ruido.
-    return "".join(pwd_chars)
+    return _truncate_and_fix(base)
 
 def generate_random(length: int = 12) -> str:
     all_chars = string.ascii_letters + string.digits + string.punctuation
@@ -111,8 +121,16 @@ def _camel_case_with_symbols(words: list) -> str:
 
 
 def generate_multiple_from_words(words: str, count: int = 4) -> list:
-    """Genera múltiples contraseñas diferentes a partir de palabras base."""
+    """Genera múltiples contraseñas diferentes a partir de palabras base.
+    Máximo 3 palabras y máximo 75 caracteres. Todas las contraseñas tienen exactamente 12 caracteres."""
+    # Validar longitud máxima de la cadena
+    if len(words) > 75:
+        raise ValueError("La entrada no puede exceder los 75 caracteres.")
+
     word_list = words.split()
+    if len(word_list) > 3:
+        raise ValueError("Se permiten máximo 3 palabras.")
+
     base = "".join(word_list)
     passwords = []
 
@@ -122,23 +140,13 @@ def generate_multiple_from_words(words: str, count: int = 4) -> list:
 
     # --- Tipo 2: Leet Speak ---
     leet_base = _leet_speak(base)
-    while len(leet_base) < 12:
-        leet_base += random.choice(string.ascii_letters + string.digits + string.punctuation)
-    leet_chars = list(leet_base)
-    while not validate_password("".join(leet_chars))['valid']:
-        leet_chars = _ensure_requirements(leet_chars)
-    passwords.append("".join(leet_chars))
+    passwords.append(_truncate_and_fix(leet_base))
 
     # --- Tipo 3: CamelCase + Símbolos ---
     camel_base = _camel_case_with_symbols(word_list)
-    while len(camel_base) < 12:
-        camel_base += random.choice(string.ascii_letters + string.digits + string.punctuation)
-    camel_chars = list(camel_base)
-    while not validate_password("".join(camel_chars))['valid']:
-        camel_chars = _ensure_requirements(camel_chars)
-    passwords.append("".join(camel_chars))
+    passwords.append(_truncate_and_fix(camel_base))
 
-    # --- Tipo 4: Aleatoria (16 caracteres) ---
-    passwords.append(generate_random(length=16))
+    # --- Tipo 4: Aleatoria (12 caracteres) ---
+    passwords.append(generate_random(length=12))
 
     return passwords
